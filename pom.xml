@@ -12,6 +12,7 @@
     <modules>
         <module>core</module>
         <module>datasource-spring-jdbc</module>
+        <module>messaging-spring-mail</module>
     </modules>
 
     <properties>

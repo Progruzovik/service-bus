@@ -16,10 +16,10 @@ public class MessageWriter implements Writer {
     private static final Logger log = LoggerFactory.getLogger(MessageWriter.class);
 
     private final ObjectMapper mapper;
-    private final Sender sender;
+    private final MessageSender sender;
     private final InstanceDao instanceDao;
 
-    public MessageWriter(ObjectMapper mapper, Sender sender, InstanceDao instanceDao) {
+    public MessageWriter(ObjectMapper mapper, MessageSender sender, InstanceDao instanceDao) {
         this.mapper = mapper;
         this.sender = sender;
         this.instanceDao = instanceDao;
