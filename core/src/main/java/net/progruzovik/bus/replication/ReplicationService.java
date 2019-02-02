@@ -33,13 +33,16 @@ public class ReplicationService implements Replicator {
 
     @Override
     public void addEntity(Entity entity) throws ReplicationException {
-        if (instanceDao.isEntityExists(entity.getName())) throw new ExistingEntityException(entity.getName());
-        instanceDao.addEntity(entity.getName());
-        final Subscription ownerSubscription = new Subscription(writer.getAddress(),
-                entity.getName(), SubscriptionType.OWNER);
-        instanceDao.updateInstanceSubscription(ownerSubscription);
+        initializeEntity(entity.getName(), true);
         entityDao.createEntity(entity);
         writer.broadcastMessage(new DataMessage<>(Subject.ADD_ENTITY, entity.getName()));
+    }
+
+    @Override
+    public void initializeEntity(String entityName, boolean isOwner) throws ReplicationException {
+        if (instanceDao.isEntityExists(entityName)) throw new ExistingEntityException(entityName);
+        instanceDao.addEntity(entityName);
+        updateSubscription(new Subscription(entityName, isOwner ? SubscriptionType.OWNER : SubscriptionType.COMMON));
     }
 
     @Override

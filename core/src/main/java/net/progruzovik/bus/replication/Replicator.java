@@ -16,6 +16,8 @@ public interface Replicator {
 
     void addEntity(Entity entity) throws ReplicationException;
 
+    void initializeEntity(String entityName, boolean isOwner) throws ReplicationException;
+
     void updateSubscription(Subscription subscription) throws ReplicationException;
 
     <T> void addRow(String entityName, T rowData, Map<String, Path> binaryPaths) throws IOException;
