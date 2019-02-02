@@ -1,5 +1,6 @@
 package net.progruzovik.bus.message;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.progruzovik.bus.message.model.EmptyMessage;
 import net.progruzovik.bus.message.model.Subject;
 import net.progruzovik.bus.replication.model.Entity;
@@ -23,16 +24,16 @@ public class MessageHandler implements BusHandler {
     private final Map<String, Reader> readers = new HashMap<>();
     private final Reader errorResponder;
 
-    public MessageHandler(Writer writer, InstanceDao instanceDao, EntityDao entityDao,
-                          String neighbor, Map<String, Reader> customReaders) {
+    public MessageHandler(ObjectMapper mapper, Writer writer, InstanceDao instanceDao,
+                          EntityDao entityDao, String neighbor, Map<String, Reader> customReaders) {
         readers.put(Subject.INIT_INSTANCE.toString(), new InstanceInitializer(writer, instanceDao));
         readers.put(Subject.ADD_INSTANCE.toString(), (f, m) ->
-                instanceDao.addInstance(m.deserializeData(String.class)));
+                instanceDao.addInstance(mapper.readValue(m.getData(), String.class)));
         readers.put(Subject.REMOVE_INSTANCE.toString(),(f, m) ->
-                instanceDao.removeInstance(m.deserializeData(String.class)));
+                instanceDao.removeInstance(mapper.readValue(m.getData(), String.class)));
 
         readers.put(Subject.ADD_ENTITY.toString(), (f, m) -> {
-            final String entityName = m.deserializeData(String.class);
+            final String entityName = mapper.readValue(m.getData(), String.class);
             if (instanceDao.isEntityExists(entityName)) {
                 writer.responseWithError(f, m);
             } else {
@@ -40,8 +41,8 @@ public class MessageHandler implements BusHandler {
                 instanceDao.updateInstanceSubscription(new Subscription(f, entityName, SubscriptionType.OWNER));
             }
         });
-        readers.put(Subject.REMOVE_ENTITY.toString(),  (f, m) -> {
-            final String entityName = m.deserializeData(String.class);
+        readers.put(Subject.REMOVE_ENTITY.toString(), (f, m) -> {
+            final String entityName = mapper.readValue(m.getData(), String.class);
             if (instanceDao.getSubscriptionType(f, entityName) == SubscriptionType.OWNER) {
                 if (instanceDao.getSubscriptionType(writer.getAddress(), entityName) != SubscriptionType.NONE) {
                     entityDao.dropEntity(entityName);
@@ -52,9 +53,9 @@ public class MessageHandler implements BusHandler {
             }
         });
 
-        readers.put(Subject.UPDATE_SUBSCRIPTION.toString(), new SubscriptionUpdater(writer, instanceDao, entityDao));
+        readers.put(Subject.UPDATE_SUBSCRIPTION.toString(), new SubscriptionUpdater(mapper, writer, instanceDao, entityDao));
         readers.put(Subject.CREATE_ENTITY.toString(), (f, m) -> {
-            final Entity entity = m.deserializeData(Entity.class);
+            final Entity entity = mapper.readValue(m.getData(), Entity.class);
             if (instanceDao.getSubscriptionType(f, entity.getName()) == SubscriptionType.OWNER) {
                 entityDao.createEntity(entity);
             } else {
@@ -62,9 +63,9 @@ public class MessageHandler implements BusHandler {
             }
         });
         readers.put(Subject.ADD_ROW.toString(), (f, m) ->
-                entityDao.addRowToEntity(m.deserializeData(Row.class), m.getAttachments()));
+                entityDao.addRowToEntity(mapper.readValue(m.getData(), Row.class), m.getAttachments()));
         readers.put(Subject.REMOVE_ROW.toString(), (f, m) ->
-                entityDao.removeRowFromEntity(m.deserializeData(Row.class)));
+                entityDao.removeRowFromEntity(mapper.readValue(m.getData(), Row.class)));
 
         readers.put(Subject.ECHO_REQUEST.toString(), (f, m) -> {
             log.info("Received echo request from {}", f);
@@ -72,7 +73,7 @@ public class MessageHandler implements BusHandler {
         });
         readers.put(Subject.ECHO_RESPONSE.toString(), (f, m) -> log.info("Received echo response from {}", f));
         readers.put(Subject.ERROR_RESPONSE.toString(), (f, m) -> {
-            final SerializedMessage originalMessage = m.deserializeData(SerializedMessage.class);
+            final SerializedMessage originalMessage = mapper.readValue(m.getData(), SerializedMessage.class);
             log.error("Received error response from {}. Original message: {}", f, originalMessage);
         });
         if (customReaders != null && !customReaders.isEmpty()) {
@@ -93,17 +94,17 @@ public class MessageHandler implements BusHandler {
         }
     }
 
-    public MessageHandler(Writer writer, InstanceDao instanceDao, EntityDao entityDao, String neighbor) {
-        this(writer, instanceDao, entityDao, neighbor, null);
+    public MessageHandler(ObjectMapper mapper, Writer writer, InstanceDao instanceDao, EntityDao entityDao, String neighbor) {
+        this(mapper, writer, instanceDao, entityDao, neighbor, null);
     }
 
-    public MessageHandler(Writer writer, InstanceDao instanceDao,
+    public MessageHandler(ObjectMapper mapper, Writer writer, InstanceDao instanceDao,
                           EntityDao entityDao, Map<String, Reader> customReaders) {
-        this(writer, instanceDao, entityDao, null, customReaders);
+        this(mapper, writer, instanceDao, entityDao, null, customReaders);
     }
 
-    public MessageHandler(Writer writer, InstanceDao instanceDao, EntityDao entityDao) {
-        this(writer, instanceDao, entityDao, null, null);
+    public MessageHandler(ObjectMapper mapper, Writer writer, InstanceDao instanceDao, EntityDao entityDao) {
+        this(mapper, writer, instanceDao, entityDao, null, null);
     }
 
     @Override

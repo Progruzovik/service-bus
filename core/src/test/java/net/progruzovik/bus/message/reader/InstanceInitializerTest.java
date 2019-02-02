@@ -1,9 +1,8 @@
 package net.progruzovik.bus.message.reader;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import net.progruzovik.bus.message.MessageHandlerTest;
 import net.progruzovik.bus.dao.InstanceDao;
 import net.progruzovik.bus.message.InstanceInitializer;
+import net.progruzovik.bus.message.MessageHandlerTest;
 import net.progruzovik.bus.message.Writer;
 import net.progruzovik.bus.message.model.DataMessage;
 import net.progruzovik.bus.message.model.SerializedMessage;
@@ -19,8 +18,7 @@ public class InstanceInitializerTest {
     private final Writer writer = mock(Writer.class);
     private final InstanceDao instanceDao = mock(InstanceDao.class);
     private final InstanceInitializer initializer = new InstanceInitializer(writer, instanceDao);
-    private final SerializedMessage message =
-            new SerializedMessage(Subject.INIT_INSTANCE.toString(), "address", null, new ObjectMapper());
+    private final SerializedMessage message = new SerializedMessage(Subject.INIT_INSTANCE.toString(), "address", null);
 
     @Before
     public void setUp() {

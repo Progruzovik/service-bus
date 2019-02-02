@@ -38,7 +38,6 @@ public class Subscription {
 
     public boolean canBeUpdatedFromType(SubscriptionType previousType) {
         return previousType == SubscriptionType.NONE && type == SubscriptionType.COMMON
-                || previousType == SubscriptionType.COMMON
-                && (type == SubscriptionType.NONE || type == SubscriptionType.OWNER);
+                || previousType == SubscriptionType.COMMON && (type == SubscriptionType.NONE || type == SubscriptionType.OWNER);
     }
 }

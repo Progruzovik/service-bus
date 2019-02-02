@@ -22,7 +22,7 @@ public class MessageHandlerTest {
     private final Writer writer = mock(Writer.class);
     private final InstanceDao instanceDao = mock(InstanceDao.class);
     private final EntityDao entityDao = mock(EntityDao.class);
-    private final MessageHandler messageHandler = new MessageHandler(writer, instanceDao, entityDao);
+    private final MessageHandler messageHandler = new MessageHandler(mapper, writer, instanceDao, entityDao);
 
     @Before
     public void setUp() {
@@ -36,12 +36,12 @@ public class MessageHandlerTest {
         final Map<String, Reader> customReaders = new HashMap<>(1);
         final Reader testReader = mock(Reader.class);
         customReaders.put(Subject.INIT_INSTANCE.toString(), testReader);
-        new MessageHandler(writer, instanceDao, entityDao, customReaders);
+        new MessageHandler(mapper, writer, instanceDao, entityDao, customReaders);
     }
 
     @Test
     public void handleUnknownMessage() throws Exception {
-        final SerializedMessage message = new SerializedMessage("testSubject", "testData", null, mapper);
+        final SerializedMessage message = new SerializedMessage("testSubject", "testData", null);
         messageHandler.handleMessage(ADDRESS, message);
         verify(writer).responseWithError(ADDRESS, message);
     }
@@ -51,8 +51,8 @@ public class MessageHandlerTest {
         final Map<String, Reader> customReaders = new HashMap<>(1);
         final Reader testReader = mock(Reader.class);
         customReaders.put("testSubject", testReader);
-        final MessageHandler messageHandler = new MessageHandler(writer, instanceDao, entityDao, customReaders);
-        final SerializedMessage message = new SerializedMessage("testSubject", "testData", null, mapper);
+        final MessageHandler messageHandler = new MessageHandler(mapper, writer, instanceDao, entityDao, customReaders);
+        final SerializedMessage message = new SerializedMessage("testSubject", "testData", null);
         messageHandler.handleMessage(ADDRESS, message);
         verify(testReader).readMessage(ADDRESS, message);
     }
@@ -62,6 +62,6 @@ public class MessageHandlerTest {
         final Map<String, Reader> customReaders = new HashMap<>(1);
         final Reader testReader = mock(Reader.class);
         customReaders.put(Subject.INIT_INSTANCE.toString(), testReader);
-        new MessageHandler(writer, instanceDao, entityDao, customReaders);
+        new MessageHandler(mapper, writer, instanceDao, entityDao, customReaders);
     }
 }

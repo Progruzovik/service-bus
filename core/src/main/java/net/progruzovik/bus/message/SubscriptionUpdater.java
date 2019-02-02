@@ -1,5 +1,6 @@
 package net.progruzovik.bus.message;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.progruzovik.bus.dao.EntityDao;
 import net.progruzovik.bus.dao.InstanceDao;
 import net.progruzovik.bus.message.model.DataMessage;
@@ -13,12 +14,14 @@ import java.io.IOException;
 
 public class SubscriptionUpdater implements Reader {
 
+    private final ObjectMapper mapper;
     private final Writer writer;
 
     private final InstanceDao instanceDao;
     private final EntityDao entityDao;
 
-    public SubscriptionUpdater(Writer writer, InstanceDao instanceDao, EntityDao entityDao) {
+    public SubscriptionUpdater(ObjectMapper mapper, Writer writer, InstanceDao instanceDao, EntityDao entityDao) {
+        this.mapper = mapper;
         this.writer = writer;
         this.instanceDao = instanceDao;
         this.entityDao = entityDao;
@@ -26,7 +29,7 @@ public class SubscriptionUpdater implements Reader {
 
     @Override
     public void readMessage(String from, SerializedMessage message) throws IOException {
-        final Subscription subscription = message.deserializeData(Subscription.class);
+        final Subscription subscription = mapper.readValue(message.getData(), Subscription.class);
         subscription.setAddress(from);
         final String entityName = subscription.getEntityName();
         if (subscription.canBeUpdatedFromType(instanceDao.getSubscriptionType(from, entityName))) {

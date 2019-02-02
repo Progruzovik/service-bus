@@ -16,8 +16,7 @@ public class Row {
         final TypeReference<Map<String, Object>> plainDataType = new TypeReference<Map<String, Object>>() { };
         final Map<String, Object> plainData = mapper.readValue(plainDataBytes, plainDataType);
         final byte[] linksBytes = mapper.writerWithView(Replicator.BinaryLink.class).writeValueAsBytes(data);
-        final Map<String, String> binaryLinks = mapper.readValue(linksBytes,
-                new TypeReference<Map<String, String>>() { });
+        final Map<String, String> binaryLinks = mapper.readValue(linksBytes, new TypeReference<Map<String, String>>() { });
         return new Row(isBinariesChanged, entityName, plainData, binaryLinks);
     }
 

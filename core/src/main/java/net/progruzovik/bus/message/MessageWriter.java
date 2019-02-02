@@ -59,6 +59,6 @@ public class MessageWriter implements Writer {
                 log.error("", e);
             }
         }
-        return new SerializedMessage(message.getSubject(), serializedData, message.getAttachments(), mapper);
+        return new SerializedMessage(message.getSubject(), serializedData, message.getAttachments());
     }
 }

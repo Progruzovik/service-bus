@@ -1,6 +1,5 @@
 package net.progruzovik.bus.message;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.progruzovik.bus.message.model.SerializedMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,11 +24,9 @@ public class BusMailHandler implements MailHandler {
     private static final Logger log = LoggerFactory.getLogger(BusMailHandler.class);
 
     private final BusHandler busHandler;
-    private final ObjectMapper mapper;
 
-    public BusMailHandler(BusHandler busHandler, ObjectMapper mapper) {
+    public BusMailHandler(BusHandler busHandler) {
         this.busHandler = busHandler;
-        this.mapper = mapper;
     }
 
     @Override
@@ -61,8 +58,8 @@ public class BusMailHandler implements MailHandler {
                     log.error("Unknown content type: {}", part.getContentType());
                 }
             }
-            busHandler.handleMessage(((InternetAddress) message.getFrom()[0]).getAddress(),
-                    new SerializedMessage(message.getSubject(), text, attachments, mapper));
+            final SerializedMessage serializedMessage = new SerializedMessage(message.getSubject(), text, attachments);
+            busHandler.handleMessage(((InternetAddress) message.getFrom()[0]).getAddress(), serializedMessage);
         } finally {
             if (attachments != null) {
                 for (final Map.Entry<String, Path> attachment : attachments.entrySet()) {
