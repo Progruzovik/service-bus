@@ -26,7 +26,8 @@ public class ReplicationServiceTest {
     private final String ADDRESS = "testAddress";
     private final String ENTITY_NAME = "testEntity";
 
-    private boolean isTestEntityAdded = false;
+    private boolean isTestEntityAdded;
+    private SubscriptionType subscriptionType;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final Writer writer = mock(Writer.class);
@@ -37,21 +38,29 @@ public class ReplicationServiceTest {
     @Before
     public void setUp() {
         isTestEntityAdded = false;
+        subscriptionType = SubscriptionType.COMMON;
+
         reset(writer);
         when(writer.getAddress()).thenReturn(ADDRESS);
         reset(instanceDao);
         doAnswer(invocation -> isTestEntityAdded).when(instanceDao).isEntityExists(ENTITY_NAME);
-        when(instanceDao.getSubscriptionType(ADDRESS, ENTITY_NAME)).thenReturn(SubscriptionType.COMMON);
+        doAnswer(invocation -> subscriptionType).when(instanceDao).getSubscriptionType(ADDRESS, ENTITY_NAME);
         doAnswer(invocation -> isTestEntityAdded = true).when(instanceDao).addEntity(ENTITY_NAME);
+        doAnswer(invocation -> {
+            final Subscription subscription = invocation.getArgument(0);
+            subscriptionType = subscription.getType();
+            return null;
+        }).when(instanceDao).updateInstanceSubscription(any());
         reset(entityDao);
     }
 
     @Test
     public void addNewEntity() throws Exception {
+        subscriptionType = SubscriptionType.NONE;
         final Entity entity = new Entity(ENTITY_NAME, new ArrayList<>());
         replicationService.addEntity(entity);
 
-        verify(instanceDao, times(2)).isEntityExists(entity.getName());
+        verify(instanceDao, times(3)).isEntityExists(entity.getName());
         verify(instanceDao).addEntity(entity.getName());
         verify(entityDao).createEntity(entity);
         verify(writer).broadcastMessage(new DataMessage<>(Subject.ADD_ENTITY, entity.getName()));

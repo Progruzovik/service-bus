@@ -42,18 +42,22 @@ public class ReplicationService implements Replicator {
     public void initializeEntity(String entityName, boolean isOwner) throws ReplicationException {
         if (instanceDao.isEntityExists(entityName)) throw new ExistingEntityException(entityName);
         instanceDao.addEntity(entityName);
-        updateSubscription(new Subscription(entityName, isOwner ? SubscriptionType.OWNER : SubscriptionType.COMMON));
+        updateSubscription(new Subscription(entityName, SubscriptionType.COMMON));
+        if (isOwner) {
+            updateSubscription(new Subscription(entityName, SubscriptionType.OWNER));
+        }
     }
 
     @Override
     public void updateSubscription(Subscription subscription) throws ReplicationException {
-        subscription.setAddress(writer.getAddress());
         final String entityName = subscription.getEntityName();
         if (!instanceDao.isEntityExists(entityName)) throw new AbsentEntityException(entityName);
-        final SubscriptionType previousType = instanceDao.getSubscriptionType(writer.getAddress(), entityName);
-        if (!subscription.canBeUpdatedFromType(previousType)) {
-            throw new InvalidSubscriptionUpdateException(previousType, subscription.getType());
+        final SubscriptionType previousSubscription = instanceDao.getSubscriptionType(writer.getAddress(), entityName);
+        if (!subscription.canBeUpdatedFromType(previousSubscription)) {
+            throw new InvalidSubscriptionUpdateException(previousSubscription, subscription.getType());
         }
+
+        subscription.setAddress(writer.getAddress());
         instanceDao.updateInstanceSubscription(subscription);
         if (subscription.getType() == SubscriptionType.NONE) {
             entityDao.dropEntity(entityName);
