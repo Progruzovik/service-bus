@@ -2,14 +2,14 @@ package net.progruzovik.bus.message.model;
 
 import org.springframework.lang.NonNull;
 
-public class RestMessage {
+public class RestMessageDto {
 
     private final @NonNull String from;
     private final @NonNull String to;
     private final @NonNull String subject;
     private final @NonNull String data;
 
-    public RestMessage(@NonNull String from, @NonNull String to, @NonNull String subject, @NonNull String data) {
+    public RestMessageDto(@NonNull String from, @NonNull String to, @NonNull String subject, @NonNull String data) {
         this.from = from;
         this.to = to;
         this.subject = subject;

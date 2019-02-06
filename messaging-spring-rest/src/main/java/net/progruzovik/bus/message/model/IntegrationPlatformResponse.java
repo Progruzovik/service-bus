@@ -2,4 +2,4 @@ package net.progruzovik.bus.message.model;
 
 import java.util.ArrayList;
 
-public class IntegrationPlatformResponse extends ArrayList<RestMessage> { }
+public class IntegrationPlatformResponse extends ArrayList<RestMessageDto> { }

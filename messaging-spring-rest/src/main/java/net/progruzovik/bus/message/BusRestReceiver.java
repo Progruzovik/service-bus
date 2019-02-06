@@ -1,7 +1,7 @@
 package net.progruzovik.bus.message;
 
 import net.progruzovik.bus.message.model.IntegrationPlatformResponse;
-import net.progruzovik.bus.message.model.RestMessage;
+import net.progruzovik.bus.message.model.RestMessageDto;
 import net.progruzovik.bus.message.model.SerializedMessage;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -30,11 +30,11 @@ public class BusRestReceiver implements RestReceiver {
         if (fromTime == null) {
             requestUrl = integrationPlatformUrl;
         } else {
-            requestUrl = String.format("%s?from=%d", integrationPlatformUrl, fromTime.toEpochMilli());
+            requestUrl = String.format("%s?after=%d", integrationPlatformUrl, fromTime.toEpochMilli());
         }
-        final List<RestMessage> messages = restTemplate.getForObject(requestUrl, IntegrationPlatformResponse.class);
+        final List<RestMessageDto> messages = restTemplate.getForObject(requestUrl, IntegrationPlatformResponse.class);
         if (messages != null) {
-            for (final RestMessage message : messages) {
+            for (final RestMessageDto message : messages) {
                 final SerializedMessage serializedMessage = new SerializedMessage(message.getSubject(), message.getData(), null);
                 busHandler.handleMessage(message.getFrom(), serializedMessage);
             }

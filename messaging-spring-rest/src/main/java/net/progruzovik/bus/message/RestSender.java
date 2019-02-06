@@ -1,6 +1,6 @@
 package net.progruzovik.bus.message;
 
-import net.progruzovik.bus.message.model.RestMessage;
+import net.progruzovik.bus.message.model.RestMessageDto;
 import net.progruzovik.bus.message.model.SerializedMessage;
 import org.springframework.lang.NonNull;
 import org.springframework.web.client.RestTemplate;
@@ -25,7 +25,7 @@ public class RestSender implements MessageSender {
 
     @Override
     public void sendMessage(@NonNull String to, @NonNull SerializedMessage message) {
-        final RestMessage restMessage = new RestMessage(address, to, message.getSubject(), message.getData());
+        final RestMessageDto restMessage = new RestMessageDto(address, to, message.getSubject(), message.getData());
         restTemplate.postForEntity(integrationPlatformUrl, restMessage, String.class);
     }
 }
