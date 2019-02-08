@@ -26,11 +26,9 @@ public class BusRestReceiver implements RestReceiver {
 
     @Override
     public void receiveMessages(@Nullable Instant fromTime) throws IOException {
-        final String requestUrl;
-        if (fromTime == null) {
-            requestUrl = integrationPlatformUrl;
-        } else {
-            requestUrl = String.format("%s?after=%d", integrationPlatformUrl, fromTime.toEpochMilli());
+        String requestUrl = String.format("%s?to=%s", integrationPlatformUrl, busHandler.getAddress());
+        if (fromTime != null) {
+            requestUrl += String.format("&after=%d", fromTime.toEpochMilli());
         }
         final List<RestMessageDto> messages = restTemplate.getForObject(requestUrl, IntegrationPlatformResponse.class);
         if (messages != null) {

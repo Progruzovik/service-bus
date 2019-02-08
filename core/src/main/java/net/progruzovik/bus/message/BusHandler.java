@@ -6,5 +6,7 @@ import java.io.IOException;
 
 public interface BusHandler {
 
+    String getAddress();
+
     void handleMessage(String from, SerializedMessage message) throws IOException;
 }

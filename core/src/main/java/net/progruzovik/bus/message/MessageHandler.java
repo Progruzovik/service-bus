@@ -21,11 +21,15 @@ public class MessageHandler implements BusHandler {
 
     private static final Logger log = LoggerFactory.getLogger(MessageHandler.class);
 
+    private final Writer writer;
+
     private final Map<String, Reader> readers = new HashMap<>();
     private final Reader errorResponder;
 
     public MessageHandler(ObjectMapper mapper, Writer writer, InstanceDao instanceDao,
                           EntityDao entityDao, String neighbor, Map<String, Reader> customReaders) {
+        this.writer = writer;
+
         readers.put(Subject.INIT_INSTANCE.toString(), new InstanceInitializer(writer, instanceDao));
         readers.put(Subject.ADD_INSTANCE.toString(), (f, m) ->
                 instanceDao.addInstance(mapper.readValue(m.getData(), String.class)));
@@ -105,6 +109,11 @@ public class MessageHandler implements BusHandler {
 
     public MessageHandler(ObjectMapper mapper, Writer writer, InstanceDao instanceDao, EntityDao entityDao) {
         this(mapper, writer, instanceDao, entityDao, null, null);
+    }
+
+    @Override
+    public String getAddress() {
+        return writer.getAddress();
     }
 
     @Override
