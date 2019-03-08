@@ -1,15 +1,20 @@
 package net.progruzovik.bus.message.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 public class RestMessageDto {
 
     private final @NonNull String from;
     private final @NonNull String to;
     private final @NonNull String subject;
-    private final @NonNull String data;
+    private final @Nullable String data;
 
-    public RestMessageDto(@NonNull String from, @NonNull String to, @NonNull String subject, @NonNull String data) {
+    public RestMessageDto(@JsonProperty("from") @NonNull String from,
+                          @JsonProperty("to") @NonNull String to,
+                          @JsonProperty("subject") @NonNull String subject,
+                          @JsonProperty("data") @Nullable String data) {
         this.from = from;
         this.to = to;
         this.subject = subject;
@@ -31,7 +36,7 @@ public class RestMessageDto {
         return subject;
     }
 
-    @NonNull
+    @Nullable
     public String getData() {
         return data;
     }
