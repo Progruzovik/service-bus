@@ -24,12 +24,14 @@ public class BusRestReceiver implements RestReceiver {
         this.busHandler = busHandler;
     }
 
+    @NonNull
     @Override
-    public void receiveMessages(@Nullable Instant fromTime) throws IOException {
+    public Instant receiveMessages(@Nullable Instant fromTime) throws IOException {
         String requestUrl = String.format("%s?to=%s", integrationPlatformUrl, busHandler.getAddress());
         if (fromTime != null) {
             requestUrl += String.format("&after=%d", fromTime.toEpochMilli());
         }
+        final Instant timeBeforeCheck = Instant.now();
         final List<RestMessageDto> messages = restTemplate.getForObject(requestUrl, IntegrationPlatformResponse.class);
         if (messages != null) {
             for (final RestMessageDto message : messages) {
@@ -37,10 +39,12 @@ public class BusRestReceiver implements RestReceiver {
                 busHandler.handleMessage(message.getFrom(), serializedMessage);
             }
         }
+        return timeBeforeCheck;
     }
 
+    @NonNull
     @Override
-    public void receiveMessages() throws IOException {
-        receiveMessages(null);
+    public Instant receiveMessages() throws IOException {
+        return receiveMessages(null);
     }
 }
