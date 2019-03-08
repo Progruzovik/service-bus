@@ -18,12 +18,10 @@ public class EntityJdbc implements EntityDao {
     private static final String PRIMARY_KEY = "busRowId";
 
     private final EntityNameConverter converter;
-    private final BinaryDao binaryDao;
     private final JdbcTemplate jdbcTemplate;
 
-    public EntityJdbc(EntityNameConverter converter, BinaryDao binaryDao, JdbcTemplate jdbcTemplate) {
+    public EntityJdbc(EntityNameConverter converter, JdbcTemplate jdbcTemplate) {
         this.converter = converter;
-        this.binaryDao = binaryDao;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -91,8 +89,6 @@ public class EntityJdbc implements EntityDao {
                         throw new IOException(String.format("Can't find path to the binary with link \"%s\"!",
                                 link.getValue()));
                     }
-                    final Path newPath = binaryDao.addBinary(link.getValue(), binaryPaths.get(link.getValue()));
-                    binaryPaths.put(link.getValue(), newPath);
                 }
                 if (!columnNames.contains(link.getKey())) {
                     query.append(converter.toDatabase(link.getKey()));
@@ -121,7 +117,7 @@ public class EntityJdbc implements EntityDao {
     }
 
     @Override
-    public void removeRowFromEntity(Row row) throws IOException {
+    public void removeRowFromEntity(Row row) {
         final StringBuilder query = new StringBuilder(String.format("DELETE FROM %s WHERE",
                 converter.toDatabase(row.getEntityName())));
         for (final Map.Entry<String, Object> column : row.getPlainData().entrySet()) {
@@ -132,9 +128,6 @@ public class EntityJdbc implements EntityDao {
         }
         for (final Map.Entry<String, String> link : row.getBinaryLinks().entrySet()) {
             if (link.getValue() != null) {
-                if (row.isBinariesChanged()) {
-                    binaryDao.removeBinary(link.getValue());
-                }
                 query.append(String.format(" %s = '%s' AND", converter.toDatabase(link.getKey()), link.getValue()));
             }
         }

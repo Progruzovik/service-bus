@@ -12,7 +12,7 @@ public class Row {
 
     public static <T> Row fromData(String entityName, ObjectMapper mapper,
                                    T data, boolean isBinariesChanged) throws IOException {
-        final byte[] plainDataBytes = mapper.writerWithView(Replicator.PlainData.class).writeValueAsBytes(data);
+        final byte[] plainDataBytes = mapper.writeValueAsBytes(data);
         final TypeReference<Map<String, Object>> plainDataType = new TypeReference<Map<String, Object>>() { };
         final Map<String, Object> plainData = mapper.readValue(plainDataBytes, plainDataType);
         final byte[] linksBytes = mapper.writerWithView(Replicator.BinaryLink.class).writeValueAsBytes(data);
