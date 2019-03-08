@@ -53,7 +53,7 @@ public class ReplicationService implements Replicator {
         final String entityName = subscription.getEntityName();
         if (!instanceDao.isEntityExists(entityName)) throw new AbsentEntityException(entityName);
         final SubscriptionType previousSubscription = instanceDao.getSubscriptionType(writer.getAddress(), entityName);
-        if (!subscription.canBeUpdatedFromType(previousSubscription)) {
+        if (!subscription.canBeUpdatedFromType(previousSubscription) || subscription.getType() == SubscriptionType.OWNER) {
             throw new InvalidSubscriptionUpdateException(previousSubscription, subscription.getType());
         }
 
@@ -67,10 +67,6 @@ public class ReplicationService implements Replicator {
 
     @Override
     public <T> void addRow(String entityName, T rowData, Map<String, Path> binaryPaths) throws IOException {
-        final SubscriptionType currentType = instanceDao.getSubscriptionType(writer.getAddress(), entityName);
-        if (currentType != SubscriptionType.OWNER) {
-            throw new ProhibitedActionException(currentType, "add row", entityName);
-        }
         final Row row = Row.fromData(entityName, mapper, rowData, binaryPaths != null);
         entityDao.addRowToEntity(row, binaryPaths);
         writer.broadcastMessage(new DataMessage<>(Subject.ADD_ROW, row, binaryPaths));
