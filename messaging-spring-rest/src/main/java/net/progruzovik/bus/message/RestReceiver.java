@@ -9,7 +9,7 @@ import java.time.Instant;
 public interface RestReceiver {
 
     @NonNull
-    Instant receiveMessages(@Nullable Instant fromTime) throws IOException;
+    Instant receiveMessages(@Nullable Instant fromTime);
 
     @NonNull
     Instant receiveMessages() throws IOException;

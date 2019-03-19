@@ -3,6 +3,8 @@ package net.progruzovik.bus.message;
 import net.progruzovik.bus.message.model.IntegrationPlatformResponse;
 import net.progruzovik.bus.message.model.RestMessageDto;
 import net.progruzovik.bus.message.model.SerializedMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.web.client.RestTemplate;
@@ -12,6 +14,8 @@ import java.time.Instant;
 import java.util.List;
 
 public class BusRestReceiver implements RestReceiver {
+
+    private static final Logger log = LoggerFactory.getLogger(BusRestReceiver.class);
 
     private final @NonNull String integrationPlatformUrl;
     private final @NonNull RestTemplate restTemplate;
@@ -26,17 +30,21 @@ public class BusRestReceiver implements RestReceiver {
 
     @NonNull
     @Override
-    public Instant receiveMessages(@Nullable Instant fromTime) throws IOException {
+    public Instant receiveMessages(@Nullable Instant fromTime) {
         String requestUrl = String.format("%s?to=%s", integrationPlatformUrl, busHandler.getAddress());
         if (fromTime != null) {
             requestUrl += String.format("&after=%d", fromTime.toEpochMilli());
         }
-        final Instant timeBeforeCheck = Instant.now();
-        final List<RestMessageDto> messages = restTemplate.getForObject(requestUrl, IntegrationPlatformResponse.class);
+        Instant timeBeforeCheck = Instant.now();
+        List<RestMessageDto> messages = restTemplate.getForObject(requestUrl, IntegrationPlatformResponse.class);
         if (messages != null) {
             for (final RestMessageDto message : messages) {
-                final SerializedMessage serializedMessage = new SerializedMessage(message.getSubject(), message.getData(), null);
-                busHandler.handleMessage(message.getFrom(), serializedMessage);
+                try {
+                    SerializedMessage serializedMessage = new SerializedMessage(message.getSubject(), message.getData(), null);
+                    busHandler.handleMessage(message.getFrom(), serializedMessage);
+                } catch (Exception e) {
+                    log.error("", e);
+                }
             }
         }
         return timeBeforeCheck;
@@ -44,7 +52,7 @@ public class BusRestReceiver implements RestReceiver {
 
     @NonNull
     @Override
-    public Instant receiveMessages() throws IOException {
+    public Instant receiveMessages() {
         return receiveMessages(null);
     }
 }
